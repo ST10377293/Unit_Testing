@@ -1,0 +1,59 @@
+# This is a basic workflow that is manually triggered
+
+name: TestPROG
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on:
+  #Triggers the workflow on push or pull request events but only for the master branch
+  push: 
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "greet"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: List contents
+      run: ls
+    # Runs a single command using the runners shell
+    - name: compile classes
+      working-directory: ./src
+      run: javac -cp "../testresources/junit-platform-console-standalone-1.10.2.jar" ./helloworld/HelloWorld.java /helloworld/Message.java "../test/helloworld/HelloWorldTest.java" "../test/helloworld/MessageTest.java"
+
+    - name: List contents of src directory after compile
+      working-directory: ./src/helloworld
+      run: ls
+
+    #copy compiled classes to test directory
+    - name: copy complied classes to testresources directory
+      working-directory: ./src/helloworld
+      run: cp -t "../../test/helloworld" Message.class HelloWorld.class
+
+    #copy compiled Test classes to testresources directory
+    - name: copy compiled Test classes to testresources directory
+      working-directory: ./test/helloworld
+      run: cp -t "../../testresources/" MessageTest.class HelloWorldTest.class
+
+    #list contents or directory
+    - name: List contents test package
+      working-directory: ./test/helloworld
+      run: ls
+
+    #run Message class tests and output report
+    - name: run Message Class tests and create report
+      working-directory: ./test
+      run: 
+        ls
+        java -jar "../testresources/junit-platform-console-standalone-1.10.2.jar" -cp "." --select-class helloworld.MessageTest
+    
